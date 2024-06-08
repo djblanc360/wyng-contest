@@ -1,0 +1,38 @@
+name: Wyng Integration
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  # enforce naming convention for new branches: feature/, bugfix/, hotfix/, qa/, or staging
+  enforce_branch_naming:
+    runs-on: macos-latest
+    steps:
+      - name: Check branch name
+        run: |
+          BRANCH_NAME=$(echo $GITHUB_REF | sed -e "s/refs\/heads\///g")
+          if [[ ! $BRANCH_NAME =~ ^(feature/|bugfix/|hotfix/|qa/) ]] && [[ $BRANCH_NAME != "staging" ]]; then
+            echo "error: Invalid branch name. Branches should start with 'feature/', 'bugfix/', 'hotfix/', 'qa/', or be named 'staging'."
+            exit 1
+          fi
+
+  build_and_test:
+    name: Build and Test
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js 14.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: 14.x
+      - name: Install dependencies
+        run: npm install
+
+      # INSTALL LATER
+      # - name: Ensure Code Consistency
+      #   run: npm run lint
+
+      - name: Run tests
+        run: npm test

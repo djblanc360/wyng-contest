@@ -1,0 +1,28 @@
+name: Wyng Deployment
+
+on:
+  push:
+    branches:
+      - main
+      - staging
+
+jobs:
+  check_staging: # checks if there's an open pull request from staging to main when there's a push to the main branch
+    if: github.ref == 'refs/heads/main'
+    runs-on: macos-latest
+    steps:
+      - name: Check if PR is from staging to main
+        uses: actions/github-script@v6
+        with:
+          script: |
+            console.log("Context:", JSON.stringify(context, null, 2));
+            const { data: prs } = await github.rest.pulls.list({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                base: 'main',
+                head: 'staging'
+            });
+            console.log("PRs:", prs);
+            if (!prs.length) {
+                throw new Error("Direct pushes to main are prohibited. Please send to staging for review.");
+            }
